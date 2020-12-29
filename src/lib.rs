@@ -1,65 +1,65 @@
 //! This crate provides a binding for the Khronos EGL 1.5 API.
 //! It was originally a fork of the [egl](https://crates.io/crates/egl) crate,
 //! which is left unmaintained.
-//! 
+//!
 //! ## Usage
-//! 
+//!
 //! You can access the EGL API using an [`Instance`]
 //! object defined by either statically linking with `libEGL.so` at compile time,
 //! or dynamically loading the EGL library at runtime.
-//! 
+//!
 //! ### Static linking
-//! 
+//!
 //! You must enable static linking using the `static` feature in your `Cargo.toml`:
 //! ```toml
 //! khronos-egl = { version = ..., features = ["static"] }
 //! ```
-//! 
+//!
 //! This will add a dependency to the [`pkg-config`](https://crates.io/crates/pkg-config) crate,
 //! necessary to find the EGL library at compile time.
 //! Here is a simple example showing how to use this library to create an EGL context when static linking is enabled.
-//! 
+//!
 //! ```rust
 //! extern crate khronos_egl as egl;
-//! 
+//!
 //! fn main() -> Result<(), egl::Error> {
 //! 	// Create an EGL API instance.
 //! 	// The `egl::Static` API implementation is only available when the `static` feature is enabled.
 //! 	let egl = egl::Instance::new(egl::Static);
-//! 
+//!
 //! 	let wayland_display = wayland_client::Display::connect_to_env().expect("unable to connect to the wayland server");
 //! 	let display = egl.get_display(wayland_display.get_display_ptr() as *mut std::ffi::c_void).unwrap();
 //! 	egl.initialize(display)?;
-//! 
+//!
 //! 	let attributes = [
 //! 		egl::RED_SIZE, 8,
 //! 		egl::GREEN_SIZE, 8,
 //! 		egl::BLUE_SIZE, 8,
 //! 		egl::NONE
 //! 	];
-//! 
+//!
 //! 	let config = egl.choose_first_config(display, &attributes)?.expect("unable to find an appropriate ELG configuration");
-//! 
+//!
 //! 	let context_attributes = [
 //! 		egl::CONTEXT_MAJOR_VERSION, 4,
 //! 		egl::CONTEXT_MINOR_VERSION, 0,
 //! 		egl::CONTEXT_OPENGL_PROFILE_MASK, egl::CONTEXT_OPENGL_CORE_PROFILE_BIT,
 //! 		egl::NONE
 //! 	];
-//! 
+//!
 //! 	egl.create_context(display, config, None, &context_attributes);
-//! 
+//!
 //! 	Ok(())
 //! }
 //! ```
-//! 
+//!
 //! The creation of a `Display` instance is not detailed here since it depends on your display server.
 //! It is created using the `get_display` function with a pointer to the display server connection handle.
 //! For instance, if you are using the [wayland-client](https://crates.io/crates/wayland-client) crate,
 //! you can get this pointer using the `Display::get_display_ptr` method.
-//! 
+//!
 //! #### Static API Instance
-//! 
+//!
 //! It may be bothering in some applications to pass the `Instance` to every fonction that needs to call the EGL API.
 //! One workaround would be to define a static `Instance`,
 //! which should be possible to define at compile time using static linking.
@@ -67,36 +67,36 @@
 //! With the nightly compiler,
 //! you can combine the `nightly` and `static` features so that this crate
 //! can provide a static `Instance`, called `API` that can then be accessed everywhere.
-//! 
+//!
 //! ```ignore
 //! use egl::API as egl;
 //! ```
-//! 
+//!
 //! ### Dynamic Linking
-//! 
+//!
 //! You must enable dynamic linking using the `dynamic` feature in your `Cargo.toml`:
 //! ```toml
 //! khronos-egl = { version = ..., features = ["dynamic"] }
 //! ```
-//! 
+//!
 //! This will add a dependency to the [`libloading`](https://crates.io/crates/libloading) crate,
 //! necessary to find the EGL library at runtime.
 //! You can then load the EGL API into a `Instance<Dynamic<libloading::Library>>` as follows:
-//! 
+//!
 //! ```ignore
 //! let lib = libloading::Library::new("libEGL.so").expect("unable to find libEGL.so");
 //! let egl = unsafe { egl::Instance::from_lib(lib).expect("unable to load libEGL.so") };
 //! ```
-//! 
+//!
 //! ## Troubleshooting
-//! 
+//!
 //! ### Static Linking with OpenGL ES
-//! 
+//!
 //! When using OpenGL ES with `khronos-egl` with the `static` feature,
 //! it is necessary to place a dummy extern at the top of your application which links libEGL first, then GLESv1/2.
 //! This is because libEGL provides symbols required by GLESv1/2.
 //! Here's how to work around this:
-//! 
+//!
 //! ```
 //! ##[link(name = "EGL")]
 //! ##[link(name = "GLESv2")]
@@ -432,7 +432,7 @@ pub fn check_attrib_list(attrib_list: &[Attrib]) -> Result<(), Error> {
 }
 
 /// EGL API instance.
-/// 
+///
 /// An instance wraps an interface to the EGL API and provide
 /// rust-friendly access to it.
 pub struct Instance<T: Api> {
@@ -715,9 +715,9 @@ impl<T: Api> Instance<T> {
 	}
 
 	/// Return the number of all frame buffer configurations.
-	/// 
+	///
 	/// You can use it to setup the correct capacity for the configurations buffer in [`get_configs`](Self::get_configs).
-	/// 
+	///
 	/// ## Example
 	/// ```
 	/// # extern crate khronos_egl as egl;
@@ -746,11 +746,11 @@ impl<T: Api> Instance<T> {
 	}
 
 	/// Get the list of all EGL frame buffer configurations for a display.
-	/// 
+	///
 	/// The configurations are added to the `configs` buffer, up to the buffer's capacity.
 	/// You can use [`get_config_count`](Self::get_config_count) to get the total number of available frame buffer configurations,
 	/// and setup the buffer's capacity accordingly.
-	/// 
+	///
 	/// ## Example
 	/// ```
 	/// # extern crate khronos_egl as egl;
@@ -1294,107 +1294,6 @@ pub const IMAGE_PRESERVED: Int = 0x30D2;
 pub const NO_IMAGE: EGLImage = 0 as EGLImage;
 
 impl<T: Api> Instance<T> {
-	/// Create a new EGL sync object.
-	///
-	/// Note that the constant `ATTRIB_NONE` which has the type `Attrib` can be used
-	/// instead of `NONE` to terminate the attribute list.
-	///
-	/// This will return a `BadParameter` error if `attrib_list` is not a valid
-	/// attributes list (if it does not terminate with `ATTRIB_NONE`).
-	///
-	/// This function is unsafe: when creating an OpenCL Event Sync Object, passing an invalid event
-	/// handle in `attrib_list` may result in undefined behavior up to and including program
-	/// termination.
-	pub unsafe fn create_sync(&self, display: Display, ty: Enum, attrib_list: &[Attrib]) -> Result<Sync, Error> {
-		check_attrib_list(attrib_list)?;
-		let sync = self.api.eglCreateSync(display.as_ptr(), ty, attrib_list.as_ptr());
-		if sync != NO_SYNC {
-			Ok(Sync(sync))
-		} else {
-			Err(self.get_error().unwrap())
-		}
-	}
-
-	/// Destroy a sync object.
-	///
-	/// This function is unsafe: if display does not match the display passed to eglCreateSync when
-	/// sync was created, the behaviour is undefined.
-	pub unsafe fn destroy_sync(&self, display: Display, sync: Sync) -> Result<(), Error> {
-		if self.api.eglDestroySync(display.as_ptr(), sync.as_ptr()) == TRUE {
-			Ok(())
-		} else {
-			Err(self.get_error().unwrap())
-		}
-	}
-
-	/// Wait in the client for a sync object to be signalled.
-	///
-	/// This function is unsafe: if `display` does not match the [`Display`] passed to [`create_sync`](Self::create_sync)
-	/// when `sync` was created, the behaviour is undefined.
-	pub unsafe fn client_wait_sync(&self, display: Display, sync: Sync, flags: Int, timeout: Time) -> Result<Int, Error> {
-		let status = self.api.eglClientWaitSync(display.as_ptr(), sync.as_ptr(), flags, timeout);
-		if status != FALSE as Int {
-			Ok(status)
-		} else {
-			Err(self.get_error().unwrap())
-		}
-	}
-
-	/// Return an attribute of a sync object.
-	///
-	/// This function is unsafe: If `display` does not match the [`Display`] passed to [`create_sync`](Self::create_sync)
-	/// when `sync` was created, behaviour is undefined.
-	pub unsafe fn get_sync_attrib(&self, display: Display, sync: Sync, attribute: Int) -> Result<Attrib, Error> {
-		let mut value = 0;
-		if self.api.eglGetSyncAttrib(
-			display.as_ptr(),
-			sync.as_ptr(),
-			attribute,
-			&mut value as *mut Attrib,
-		) == TRUE
-		{
-			Ok(value)
-		} else {
-			Err(self.get_error().unwrap())
-		}
-	}
-
-	/// Create a new Image object.
-	///
-	/// Note that the constant `ATTRIB_NONE` which has the type `Attrib` can be used
-	/// instead of `NONE` to terminate the attribute list.
-	///
-	/// This will return a `BadParameter` error if `attrib_list` is not a valid
-	/// attributes list (if it does not terminate with `ATTRIB_NONE`).
-	pub fn create_image(&self, display: Display, ctx: Context, target: Enum, buffer: ClientBuffer, attrib_list: &[Attrib]) -> Result<Image, Error> {
-		check_attrib_list(attrib_list)?;
-		unsafe {
-			let image = self.api.eglCreateImage(
-				display.as_ptr(),
-				ctx.as_ptr(),
-				target,
-				buffer.as_ptr(),
-				attrib_list.as_ptr(),
-			);
-			if image != NO_IMAGE {
-				Ok(Image(image))
-			} else {
-				Err(self.get_error().unwrap())
-			}
-		}
-	}
-
-	/// Destroy an Image object.
-	pub fn destroy_image(&self, display: Display, image: Image) -> Result<(), Error> {
-		unsafe {
-			if self.api.eglDestroyImage(display.as_ptr(), image.as_ptr()) == TRUE {
-				Ok(())
-			} else {
-				Err(self.get_error().unwrap())
-			}
-		}
-	}
-
 	/// Return an EGL display connection.
 	///
 	/// Note that the constant `ATTRIB_NONE` which has the type `Attrib` can be used
@@ -1405,12 +1304,7 @@ impl<T: Api> Instance<T> {
 	pub fn get_platform_display(&self, platform: Enum, native_display: *mut c_void, attrib_list: &[Attrib]) -> Result<Display, Error> {
 		check_attrib_list(attrib_list)?;
 		unsafe {
-			let display = self.api.eglGetPlatformDisplay(platform, native_display, attrib_list.as_ptr());
-			if display != NO_DISPLAY {
-				Ok(Display(display))
-			} else {
-				Err(self.get_error().unwrap())
-			}
+			Err(self.get_error().unwrap())
 		}
 	}
 
@@ -1424,18 +1318,8 @@ impl<T: Api> Instance<T> {
 	pub fn create_platform_window_surface(&self, display: Display, config: Config, native_window: *mut c_void, attrib_list: &[Attrib]) -> Result<Surface, Error> {
 		check_attrib_list(attrib_list)?;
 		unsafe {
-			let surface = self.api.eglCreatePlatformWindowSurface(
-				display.as_ptr(),
-				config.as_ptr(),
-				native_window,
-				attrib_list.as_ptr(),
-			);
-			if surface != NO_SURFACE {
-				Ok(Surface(surface))
-			} else {
 				Err(self.get_error().unwrap())
 			}
-		}
 	}
 
 	/// Create a new EGL offscreen surface.
@@ -1448,31 +1332,7 @@ impl<T: Api> Instance<T> {
 	pub fn create_platform_pixmap_surface(&self, display: Display, config: Config, native_pixmap: *mut c_void, attrib_list: &[Attrib]) -> Result<Surface, Error> {
 		check_attrib_list(attrib_list)?;
 		unsafe {
-			let surface = self.api.eglCreatePlatformPixmapSurface(
-				display.as_ptr(),
-				config.as_ptr(),
-				native_pixmap,
-				attrib_list.as_ptr(),
-			);
-			if surface != NO_SURFACE {
-				Ok(Surface(surface))
-			} else {
 				Err(self.get_error().unwrap())
-			}
-		}
-	}
-
-	/// Wait in the server for a sync object to be signalled.
-	///
-	/// This function is unsafe: if `display` does not match the [`Display`] passed to [`create_sync`](Self::create_sync)
-	/// when `sync` was created, the behavior is undefined.
-	pub fn wait_sync(&self, display: Display, sync: Sync, flags: Int) -> Result<(), Error> {
-		unsafe {
-			if self.api.eglWaitSync(display.as_ptr(), sync.as_ptr(), flags) == TRUE {
-				Ok(())
-			} else {
-				Err(self.get_error().unwrap())
-			}
 		}
 	}
 }
@@ -1484,9 +1344,9 @@ impl<T: Api> Instance<T> {
 macro_rules! api {
 	($(pub fn $name:ident ($($arg:ident : $atype:ty ),* ) -> $rtype:ty);*) => {
 		/// EGL API interface.
-		/// 
+		///
 		/// An implementation of this trait can be used to create an [`Instance`].
-		/// 
+		///
 		/// This crate provides two implemntation of this trait:
 		///  - [`Static`] which is available with the `static` feature enabled,
 		///    defined by statically linking to the EGL library at compile time.
@@ -1501,7 +1361,7 @@ macro_rules! api {
 
 		#[cfg(feature="static")]
 		/// Static EGL API interface.
-		/// 
+		///
 		/// This type is only available when the `static` feature is enabled,
 		/// by statically linking the EGL library at compile time.
 		#[derive(Copy, Clone, Debug)]
@@ -1520,7 +1380,7 @@ macro_rules! api {
 		#[cfg(feature="static")]
 		mod ffi {
 			use libc::{c_char, c_void};
-			
+
 			use super::{
 				Attrib, Boolean, EGLClientBuffer, EGLConfig, EGLContext, EGLDisplay, EGLImage, EGLSurface,
 				EGLSync, Enum, Int, NativeDisplayType, NativePixmapType, NativeWindowType, Time,
@@ -1542,7 +1402,7 @@ macro_rules! api {
 
 		#[cfg(feature="dynamic")]
 		/// Dynamic EGL API interface.
-		/// 
+		///
 		/// This type is only available when the `dynamic` feature is enabled.
 		/// In most cases, you may prefer to directly use the `DynamicInstance` type.
 		pub struct Dynamic<L: std::borrow::Borrow<libloading::Library>> {
@@ -1569,7 +1429,7 @@ macro_rules! api {
 		impl<L: std::borrow::Borrow<libloading::Library>> Dynamic<L> {
 			#[inline]
 			/// Load the EGL API symbols from the given library.
-			/// 
+			///
 			/// ## Safety
 			/// This is fundamentally unsafe since there are no guaranties the input library complies to the EGL API.
 			pub unsafe fn new(lib: L) -> Result<Dynamic<L>, libloading::Error> {
@@ -1607,7 +1467,7 @@ macro_rules! api {
 		impl<L: std::borrow::Borrow<libloading::Library>> Instance<Dynamic<L>> {
 			#[inline(always)]
 			/// Create an EGL instance using the symbols provided by the given library.
-			/// 
+			///
 			/// ## Safety
 			/// This is fundamentally unsafe since there are no guaranties the input library complies to the EGL API.
 			pub unsafe fn from_lib(lib: L) -> Result<Instance<Dynamic<L>>, libloading::Error> {
@@ -1623,11 +1483,11 @@ macro_rules! api {
 		impl DynamicInstance {
 			#[inline(always)]
 			/// Create an EGL instance by finding and loading a dynamic library with the given filename.
-			/// 
+			///
 			/// This is equivalent to `DynamicInstance::from_lib(libloading::Library::new(filename)?)`.
 			/// See [`Library::new`](libloading::Library::new)
 			/// for more details on how the `filename` argument is used.
-			/// 
+			///
 			/// ## Safety
 			/// This is fundamentally unsafe since there are no guaranties the input library complies to the EGL API.
 			pub unsafe fn from_filename<P: AsRef<std::ffi::OsStr>>(filename: P) -> Result<DynamicInstance, libloading::Error> {
@@ -1636,9 +1496,9 @@ macro_rules! api {
 
 			#[inline(always)]
 			/// Create an EGL instance by finding and loading the `libEGL.so` library.
-			/// 
+			///
 			/// This is equivalent to `DynamicInstance::from_filename("libEGL.so")`.
-			/// 
+			///
 			/// ## Safety
 			/// This is fundamentally unsafe since there are no guaranties the found library complies to the EGL API.
 			pub unsafe fn load() -> Result<DynamicInstance, libloading::Error> {
@@ -1754,42 +1614,5 @@ api! {
 	pub fn eglWaitClient() -> Boolean;
 
 	// EGL 1.4
-	pub fn eglGetCurrentContext() -> EGLContext;
-
-	// EGL 1.5
-	pub fn eglCreateSync(display: EGLDisplay, type_: Enum, attrib_list: *const Attrib) -> EGLSync;
-	pub fn eglDestroySync(display: EGLDisplay, sync: EGLSync) -> Boolean;
-	pub fn eglClientWaitSync(display: EGLDisplay, sync: EGLSync, flags: Int, timeout: Time) -> Int;
-	pub fn eglGetSyncAttrib(
-		display: EGLDisplay,
-		sync: EGLSync,
-		attribute: Int,
-		value: *mut Attrib
-	) -> Boolean;
-	pub fn eglCreateImage(
-		display: EGLDisplay,
-		ctx: EGLContext,
-		target: Enum,
-		buffer: EGLClientBuffer,
-		attrib_list: *const Attrib
-	) -> EGLImage;
-	pub fn eglDestroyImage(display: EGLDisplay, image: EGLImage) -> Boolean;
-	pub fn eglGetPlatformDisplay(
-		platform: Enum,
-		native_display: *mut c_void,
-		attrib_list: *const Attrib
-	) -> EGLDisplay;
-	pub fn eglCreatePlatformWindowSurface(
-		display: EGLDisplay,
-		config: EGLConfig,
-		native_window: *mut c_void,
-		attrib_list: *const Attrib
-	) -> EGLSurface;
-	pub fn eglCreatePlatformPixmapSurface(
-		display: EGLDisplay,
-		config: EGLConfig,
-		native_pixmap: *mut c_void,
-		attrib_list: *const Attrib
-	) -> EGLSurface;
-	pub fn eglWaitSync(display: EGLDisplay, sync: EGLSync, flags: Int) -> Boolean
+	pub fn eglGetCurrentContext() -> EGLContext
 }
